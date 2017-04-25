@@ -18,11 +18,14 @@ class SignupForm extends React.Component{
 			passwordConfirmation: '',
 			timezone: '',
 			errors: {},
+			pass: {},
 			isLoading: false,
 			success: false,
+			invalid: false
 		}
 		this.onChange = this.onChange.bind(this)
 		this.onSubmit = this.onSubmit.bind(this)
+		this.checkUserExists = this.checkUserExists.bind(this)
 	}
 	onChange(e){
 		this.setState({ [e.target.name]: e.target.value})
@@ -36,6 +39,30 @@ class SignupForm extends React.Component{
 		}
 		return isValid;
 	}
+	checkUserExists(e){
+		const field = e.target.name;
+		const val = e.target.value;
+		if(val !== ""){
+			this.props.isUserExists(val).then(function(response){
+				let errors = this.state.errors;
+				let pass = this.state.pass;
+				let invalid = this.state.invalid;;
+				if(response.data !== 'pass'){
+					errors[field] = "There is user with this " + field;
+					invalid = true;
+				}else{
+					errors[field] = ''
+					invalid = false
+				}
+				// else if(response.data == 'pass'){
+				// 	pass[field] = 'This ' + field +  ' looks good!';
+				// }
+				this.setState({ pass })
+				this.setState({ errors, invalid })
+			}.bind(this))
+		}
+
+	}
 	onSubmit(e){
 		e.preventDefault();
 		if(this.isValid()){
@@ -48,7 +75,6 @@ class SignupForm extends React.Component{
 					this.setState({ errors: response.data, isLoading: false })
 				}
 				if(response.data.success == true){
-					console.log(this.props)
 					this.props.addFlashMessages({
 						type: 'success', text: 'Welcome! You Signed Up Successfully!'
 					})
@@ -74,6 +100,7 @@ class SignupForm extends React.Component{
 					error={this.state.errors.username}
 					label="Username"
 					onChange={this.onChange}
+					checkUserExists={this.checkUserExists}
 					value={this.state.username}
 					field='username'
 					type='text'
@@ -82,6 +109,7 @@ class SignupForm extends React.Component{
 					error={this.state.errors.email}
 					label="Email"
 					onChange={this.onChange}
+					checkUserExists={this.checkUserExists}
 					value={this.state.email}
 					field='email'
 					type='text'
@@ -112,7 +140,7 @@ class SignupForm extends React.Component{
 					{this.state.errors.timezone && <span className='help-block'>{this.state.errors.timezone}</span>}
 				</div>
 				<div className='form-group'>
-					<button disabled={this.state.isLoading} className='btn btn-primary'>Sign Up</button>
+					<button disabled={this.state.isLoading || this.state.invalid } className='btn btn-primary'>Sign Up</button>
 				</div>
 			</form>
 		)
@@ -121,7 +149,8 @@ class SignupForm extends React.Component{
 
 SignupForm.propTypes = {
 	userSignupRequest: PropTypes.func.isRequired,
-	addFlashMessages: PropTypes.func.isRequired
+	addFlashMessages: PropTypes.func.isRequired,
+	isUserExists: PropTypes.func.isRequired
 };
 
 export default SignupForm;

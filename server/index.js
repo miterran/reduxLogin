@@ -1,6 +1,10 @@
 import express from 'express';
 import users from './routes/users';
 import bodyParser from 'body-parser';
+import mongoose from 'mongoose';
+mongoose.Promise = global.Promise;
+mongoose.connect('mongodb://test:test@ds117271.mlab.com:17271/reduxlogin')
+
 const app = express();
 
 app.use('/js', express.static(__dirname + '/js'))
